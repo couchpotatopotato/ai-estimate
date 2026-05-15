@@ -64,30 +64,28 @@ DB_USER=readonly_user
 DB_PASSWORD=your_password_here
 ```
 
+Run:
+```bash
+docker compose --profile local up --build
+```
+
 ### Cloud SQL (Google Cloud Postgres)
 
-1. **Authenticate with gcloud:**
-   ```bash
-   brew install --cask google-cloud-sdk
-   gcloud auth application-default login
-   ```
-   Your credentials are saved to `~/.config/gcloud/application_default_credentials.json` and mounted automatically by the proxy container. Your GCP account needs the **Cloud SQL Client** IAM role.
+1. **Enable public IP on your Cloud SQL instance** — GCP Console → Cloud SQL → your instance → Connections → Networking → Add `0.0.0.0/0` to authorised networks.
 
 2. **Update `.env`** — comment out the local block and uncomment the cloud block:
    ```
    DB_MODE=cloud
-   DB_HOST=cloud-sql-proxy
-   DB_NAME=your_cloud_db_name
-   DB_USER=your_cloud_db_user
-   DB_PASSWORD=your_cloud_db_password
-   CLOUD_SQL_INSTANCE=your_project:your_region:your_instance
+   DATABASE_URL=postgresql://your_user:your_password@your_public_ip:5432/your_db_name
    ```
-   Find your instance connection name in GCP Console → Cloud SQL → your instance → Connection name.
+   Your public IP is shown on the Cloud SQL instance overview page.
 
 3. **Run:**
    ```bash
    docker compose --profile cloud up --build
    ```
+
+No gcloud login or proxy container needed — the backend connects directly.
 
 ---
 

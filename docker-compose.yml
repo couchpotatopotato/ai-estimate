@@ -30,21 +30,8 @@ services:
     restart: unless-stopped
     profiles: ["local"]
 
-  # ── Cloud SQL Proxy (DB_MODE=cloud) ──────────────────
-  cloud-sql-proxy:
-    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2
-    command:
-      - "--address=0.0.0.0"
-      - "--port=5432"
-      - "${CLOUD_SQL_INSTANCE}"
-    ports:
-      - "5432:5432"
-    volumes:
-      - ~/.config/gcloud/application_default_credentials.json:/gcloud/credentials.json
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/credentials.json
-    restart: unless-stopped
-    profiles: ["cloud"]
+  # ── Cloud SQL direct (DB_MODE=cloud) ──────────────────
+  # No extra container needed — backend connects directly via DATABASE_URL
 
 volumes:
   postgres_data:
