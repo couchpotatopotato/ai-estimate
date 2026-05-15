@@ -1,0 +1,50 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - ./backend:/app
+      - ./steering:/app/steering
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  # ── Local Postgres (DB_MODE=local) ───────────────────
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    profiles: ["local"]
+
+  # ── Cloud SQL Proxy (DB_MODE=cloud) ──────────────────
+  cloud-sql-proxy:
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2
+    command:
+      - "--address=0.0.0.0"
+      - "--port=5432"
+      - "${CLOUD_SQL_INSTANCE}"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ~/.config/gcloud/application_default_credentials.json:/gcloud/credentials.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/credentials.json
+    restart: unless-stopped
+    profiles: ["cloud"]
+
+volumes:
+  postgres_data:
